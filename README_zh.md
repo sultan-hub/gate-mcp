@@ -16,33 +16,36 @@
 - **活动中心、卡券、新币挖矿、广场、新手福利** — 活动类型、用户卡券、LaunchPool、AI 搜索、新手任务
 - **TradFi、跨所、OTC、P2P** — 传统金融、跨所交易、场外、P2P
 - **DEX** — 链上钱包、兑换（单链及跨链）、代币信息、市场数据，支持 20+ 条链
-- **Info** — 币种信息、行情快照、技术分析、链上数据、合规检测
-- **News** — 实时加密资讯、交易所公告、社交情绪
+- **Info** — 币种发现、行情快照、技术/平台指标、链上与宏观数据
+- **News** — 加密资讯、社交洞察、市场事件、预测市场
+- **Docs** — 研报、论文与文档检索
 - **OAuth2 授权** — 交易及私有工具需 Gate 账号登录
 
 ## MCP 端点
 
-服务提供五个 MCP 端点：
+服务提供以下 MCP 端点：
 
 | 端点 | 认证 | 工具 |
 |------|------|------|
 | `https://api.gatemcp.ai/mcp` | 无 | 公开市场数据（58 个工具：现货、合约、杠杆、期权、交割、理财、Alpha、活动中心、新币挖矿、广场、闪兑） |
 | `https://api.gatemcp.ai/mcp/exchange` | OAuth2 | CEX 交易与账户（400+ 工具：现货/合约/期权/交割/杠杆交易、钱包、统一账户、子账户、理财、闪兑、返佣、TradFi、跨所、P2P、Alpha、活动中心、卡券、新币挖矿、广场、新手福利） |
 | `https://api.gatemcp.ai/mcp/dex` | Google / Gate OAuth | DEX 钱包与兑换（33 个工具：链上钱包、Swap、代币信息、市场数据、Agentic、RPC，支持 20+ 条链） |
-| `https://api.gatemcp.ai/mcp/info` | 无 | 币种信息与分析（10 个工具：行情快照、技术分析、链上数据、合规检测） |
-| `https://api.gatemcp.ai/mcp/news` | 无 | 资讯与情绪（3 个工具：新闻搜索、交易所公告、社交情绪） |
+| `https://api.gatemcp.ai/mcp/info` | 无 | 币种信息与分析（32 个工具：币种、快照、趋势、链上、平台指标、宏观、盘口细节） |
+| `https://api.gatemcp.ai/mcp/news` | 无 | 资讯与研究（18 个工具：新闻/UGC/X/网页、公告、情绪、事件、预测市场） |
+| `https://api.gatemcp.ai/mcp/docs` | 无 | 文档研究（3 个工具：研究检索、币种研报、论文） |
 
 - **仅查行情** → 使用 `/mcp`（无需 Gate 账号）
 - **CEX 交易、余额、划转** → 使用 `/mcp/exchange`（需 Gate OAuth2）
 - **DEX 钱包、兑换、链上操作** → 使用 `/mcp/dex`（需 Google / Gate OAuth）
 - **币种信息、技术分析** → 使用 `/mcp/info`（无需认证）
 - **资讯、公告** → 使用 `/mcp/news`（无需认证）
+- **研报与论文** → 使用 `/mcp/docs`（无需认证）
 
 传输协议：Streamable HTTP（支持 SSE 回退）。
 
 ## 授权说明（OAuth2）
 
-**`/mcp/exchange` 需要 Gate OAuth2；`/mcp/dex` 需要 Google 或 Gate OAuth。** `/mcp`、`/mcp/info`、`/mcp/news` 无需任何认证。
+**`/mcp/exchange` 需要 Gate OAuth2；`/mcp/dex` 需要 Google 或 Gate OAuth。** `/mcp`、`/mcp/info`、`/mcp/news`、`/mcp/docs` 无需任何认证。
 
 ### mcporter
 
@@ -514,47 +517,30 @@ Claude Desktop 需要使用本地 stdio 代理。
 
 完整 DEX 工具参数见 [gate-dex-mcp](gate-dex/gate-dex-mcp_zh.md)。Agentic Wallet 子集文档（认证、钱包、市场数据、资源）见 [gate-agentic-wallet-mcp](gate-dex/gate-agentic-wallet-mcp_zh.md)。
 
-### Info — 币种与行情
+### Info（`/mcp/info` — 32 个工具，无需认证）
 
-| 工具 | 描述 |
+公开、只读的行情与研究数据。分类总览（完整参数表见 [gate-info-mcp](gate-info/gate-info-mcp_zh.md)）：
+
+| 分类 | 工具 |
 |------|------|
-| `info_coin_get_coin_info` | 按名称、符号或合约地址查询币种信息 |
-| `info_marketsnapshot_get_market_snapshot` | 行情一览：价格、K 线概况、市值、FDV、恐惧贪婪指数 |
+| 币种 | `info_coin_get_coin_info`、`info_coin_search_coins`、`info_coin_get_coin_rankings` |
+| 行情快照 | `info_marketsnapshot_get_market_snapshot`、`info_marketsnapshot_batch_market_snapshot`、`info_marketsnapshot_get_market_overview`、`info_marketsnapshot_get_institutional_metrics` |
+| 行情趋势 | `info_markettrend_get_kline`、`info_markettrend_get_indicator_history`、`info_markettrend_get_technical_analysis` |
+| 链上 | `info_onchain_get_address_info`、`info_onchain_get_address_transactions`、`info_onchain_get_transaction`、`info_onchain_get_token_onchain` |
+| 合规 | `info_compliance_check_token_security` |
+| 平台指标 | `info_platformmetrics_get_platform_info`、`info_platformmetrics_search_platforms`、`info_platformmetrics_get_defi_overview`、`info_platformmetrics_get_stablecoin_info`、`info_platformmetrics_get_bridge_metrics`、`info_platformmetrics_get_yield_pools`、`info_platformmetrics_get_platform_history`、`info_platformmetrics_get_exchange_reserves`、`info_platformmetrics_get_liquidation_heatmap`、`info_platformmetrics_get_cex_orderbook_depth`、`info_platformmetrics_get_chain_activity` |
+| 宏观 | `info_macro_get_macro_indicator`、`info_macro_get_economic_calendar`、`info_macro_get_macro_summary` |
+| 盘口细节 | `info_marketdetail_get_orderbook`、`info_marketdetail_get_recent_trades`、`info_marketdetail_get_kline` |
 
-### Info — 行情趋势与技术分析
+### News（`/mcp/news` — 18 个工具，无需认证）
 
-| 工具 | 描述 |
+公开、只读的资讯与社交研究。分类总览（完整参数表见 [gate-news-mcp](gate-news/gate-news-mcp_zh.md)）：
+
+| 分类 | 工具 |
 |------|------|
-| `info_markettrend_get_kline` | OHLCV K 线数据，可附带指标 |
-| `info_markettrend_get_indicator_history` | 指标历史序列（RSI、MACD、MA、EMA） |
-| `info_markettrend_get_technical_analysis` | 多粒度技术面综合信号 |
-
-### Info — 链上数据
-
-| 工具 | 描述 |
-|------|------|
-| `info_onchain_get_address_info` | 链上地址：标签、风险等级、代币余额 |
-| `info_onchain_get_address_transactions` | 地址交易记录 |
-| `info_onchain_get_transaction` | 按交易哈希查询完整详情 |
-| `info_onchain_get_token_onchain` | 代币链上数据：持仓分布、活跃度、Smart Money |
-
-### Info — 合规检测
-
-| 工具 | 描述 |
-|------|------|
-| `info_compliance_check_token_security` | 代币安全检测：风险分级、税率、是否开源、持币人数 |
-
-完整 Info 工具参数见 [gate-info-mcp](gate-info/gate-info-mcp_zh.md)。
-
-### News — 资讯与公告
-
-| 工具 | 描述 |
-|------|------|
-| `news_feed_search_news` | 按关键词、币种、时间范围、媒体类型搜索资讯 |
-| `news_feed_get_exchange_announcements` | 交易所公告：上新、下架、维护 |
-| `news_feed_get_social_sentiment` | 推文详情：作者、内容、互动、情绪 |
-
-完整 News 工具参数见 [gate-news-mcp](gate-news/gate-news-mcp_zh.md)。
+| 资讯快讯 | `news_feed_search_news`、`news_feed_web_search`、`news_feed_search_x`、`news_feed_search_ugc`、`news_feed_get_exchange_announcements`、`news_feed_get_social_sentiment`、`news_feed_get_mention_burst`、`news_feed_get_hot_topics` |
+| 事件 | `news_events_get_latest_events`、`news_events_get_event_detail`、`news_events_explain_market_move`、`news_events_get_market_move_report`、`news_events_list_market_move_reports` |
+| 预测市场 | `news_prediction_get_volume_delta_ranking`、`news_prediction_get_fastest_rising_ranking`、`news_prediction_get_market_orderbook`、`news_prediction_search_events`、`news_prediction_get_event_signal` |
 
 ---
 
@@ -562,7 +548,7 @@ Claude Desktop 需要使用本地 stdio 代理。
 
 ### Q: 需要 Gate 账号吗？
 
-A: **仅在使用 CEX 交易和 DEX 钱包时需要**。`/mcp`、`/mcp/info`、`/mcp/news` 完全公开，无需账号。`/mcp/exchange`（CEX 交易、余额、划转）须通过 Gate OAuth2 登录。`/mcp/dex`（链上钱包、兑换）须通过 Google 或 Gate OAuth 登录。
+A: **仅在使用 CEX 交易和 DEX 钱包时需要**。`/mcp`、`/mcp/info`、`/mcp/news`、`/mcp/docs` 完全公开，无需账号。`/mcp/exchange`（CEX 交易、余额、划转）须通过 Gate OAuth2 登录。`/mcp/dex`（链上钱包、兑换）须通过 Google 或 Gate OAuth 登录。
 
 ### Q: 支持交易吗？
 

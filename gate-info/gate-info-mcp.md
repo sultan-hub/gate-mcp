@@ -1,125 +1,101 @@
 # Gate Info MCP Tools
 
-> This document lists **Cursor-visible** Info tools only (aligned with `cursor_visible` under `info` in `/Users/slamdunk/gate/mcptest/docs/mcp-tool.yaml`).  
-> News tools: [gate-news-mcp.md](gate-news-mcp.md). Docs research tools: [gate-docs-mcp.md](gate-docs-mcp.md).
->
-> **Implementation**: `/Users/slamdunk/gate/mcp-server` (module `github.com/jelix/ai-data-mcp-server`). Naming: `specs/mcp-tool-rule.md`, prefix `info_{subcategory}_{action}`.
+**Endpoint**: `https://api.gatemcp.ai/mcp/info`  
+**Auth**: none  
+**Transport**: Streamable HTTP  
 
-**Runtime**: Many domains need backing services (OpenSearch, Gate HTTP API, Redis, block explorer, token-security API). Unconfigured backends return documented error codes. `info_compliance_check_token_security` appears in Cursor only when the token-security service is enabled **and** the tool remains in `cursor_visible`. Tools not in that YAML (placeholders, `curl_only`, etc.) are intentionally omitted here.
+Public, read-only market and research data (**32 tools**). No login, account access, or trading. Not investment advice.
 
-Default response shape where applicable: echoed input → `total` → `count` → `items` → `duration_ms` (snake_case). See that repo’s `docs/info/api-responses.md` and `.cursor/rules/mcp-tool-api-style.mdc`.
-
----
-
-## 1. Coin (`info_coin`)
-
-| Tool | Description | Main parameters |
-|------|-------------|-----------------|
-| `info_coin_get_coin_info` | Resolve a coin by name, symbol, or contract; returns matches and metadata. | `query` (required), `query_type` (auto / address / symbol / name / gate_symbol / source_id), `scope` (basic / detailed / full), `size`, `fields` |
+Related: [News](../gate-news/gate-news-mcp.md)
 
 ---
 
-## 2. Market snapshot (`info_marketsnapshot`)
+## 1. Coin (3)
 
-| Tool | Description | Main parameters |
-|------|-------------|-----------------|
-| `info_marketsnapshot_get_market_snapshot` | Real-time quote, kline summary, project block for one symbol. | `symbol` (required); `timeframe` or `indicator_timeframe` (default 1h); `source` (spot / alpha / future / fx, default spot); `quote` (e.g. USDT); `scope` (basic / detailed / full) |
-
----
-
-## 3. Market trend (`info_markettrend`)
-
-### 3.1 K-line
-
-| Tool | Description | Main parameters |
-|------|-------------|-----------------|
-| `info_markettrend_get_kline` | OHLCV with optional indicators. | `symbol` (required), `timeframe`, `period`, `size` / `limit`, `start_time`, `end_time`, `with_indicators` |
-
-### 3.2 Indicator history
-
-| Tool | Description | Main parameters |
-|------|-------------|-----------------|
-| `info_markettrend_get_indicator_history` | Historical series for listed indicators. | `symbol` (required), `indicators` (required), `timeframe` (15m / 1h / 4h / 1d), `start_time`, `end_time`, `limit` |
-
-### 3.3 Technical analysis
-
-| Tool | Description | Main parameters |
-|------|-------------|-----------------|
-| `info_markettrend_get_technical_analysis` | Multi-timeframe technical signals. | `symbol` (required) |
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `info_coin_get_coin_info` | Look up one coin by ticker, name, or contract. | **`query`** (required); `query_type` (auto / address / symbol / name / project / gate_symbol / source_id); `chain`; `scope` (basic / detailed / full); `size` (default 3, max 20); `fields` |
+| `info_coin_search_coins` | Filter a multi-row asset list by sector, chain, cap, type. | `category`; `chain`; `market_cap_min` / `market_cap_max`; `asset_type` (crypto / tradefi / all); `sort_by` (market_cap / fdv / circulating_supply); `limit` (default 20, max 400); `offset` |
+| `info_coin_get_coin_rankings` | Leaderboards / boards. | **`ranking_type`** (required: popular / top_gainers / top_losers / twitter_hot / airdrop / new_listing / market_pulse_hot); `time_range` (1h / 24h / 7d — gainers/losers only); `limit` (default 20, max 400); new_listing: `listing_query`, `listing_from`, `listing_tickers` |
 
 ---
 
-## 4. Onchain (`info_onchain`)
+## 2. Market snapshot (4)
 
-### 4.1 Address
-
-| Tool | Description | Main parameters |
-|------|-------------|-----------------|
-| `info_onchain_get_address_info` | Labels, risk, token balances (eth / trx / bsc / btc / sol / base / arb, …). | `address` (required), `chain` (required), `scope` (basic / detailed / full), `min_value_usd` |
-| `info_onchain_get_address_transactions` | Transaction history with filters. | `address` (required), `chain`, `tx_type`, `time_range` or `start_time` / `end_time`, `min_value_usd`, `limit` |
-
-### 4.2 Transaction & token
-
-| Tool | Description | Main parameters |
-|------|-------------|-----------------|
-| `info_onchain_get_transaction` | Full tx by hash. | `tx_hash` (required), `chain` |
-| `info_onchain_get_token_onchain` | Holder / activity / transfers / smart_money slices. | `token` (required), `chain`, `scope` (holders / activity / transfers / smart_money / full) |
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `info_marketsnapshot_get_market_snapshot` | One symbol: price, kline clip, project context. | **`symbol`** (required); `timeframe` or `indicator_timeframe` (15m / 1h / 4h / 1d, default 1h); `source` (spot / futures / alpha / fx, default spot); `quote` (default USDT); `scope` (basic / detailed / full) |
+| `info_marketsnapshot_batch_market_snapshot` | Up to 20 symbols; missing symbols still allow batch success. | **`symbols`** (required, max 20); `timeframe`; `source`; `quote`; `scope` |
+| `info_marketsnapshot_get_market_overview` | Market-wide cap, volume, dominance, sentiment. | — |
+| `info_marketsnapshot_get_institutional_metrics` | BTC/ETH institutional daily series (ETF / CME / CFTC). | `asset` (BTC / ETH / all, default BTC); `channel` (all / etf / cme / cftc); `start_date` / `end_date` (YYYY-MM-DD); `limit` (1–366, default 30) |
 
 ---
 
-## 5. Compliance (`info_compliance`)
+## 3. Market trend (3)
 
-| Tool | Description | Main parameters |
-|------|-------------|-----------------|
-| `info_compliance_check_token_security` | Contract security: risk tier, taxes, open source, holders, name risk. **Registered only if token-security service is enabled.** | `token` or `address` (one required), `chain` (required), `scope` (basic / full), `lang` |
+Descriptive research only — not trading signals or forecasts.
 
----
-
-## 6. Platform metrics (`info_platformmetrics`)
-
-Requires OpenSearch-backed `platformmetrics` fetcher; otherwise calls error with “requires OpenSearch” semantics.
-
-| Tool | Description | Main parameters |
-|------|-------------|-----------------|
-| `info_platformmetrics_get_platform_info` | Single protocol/platform metrics. | `platform_name` (required), `scope` (basic / with_chain_breakdown / full) |
-| `info_platformmetrics_search_platforms` | Ranked list with filters/sort. | `platform_type`, `chain`, `sort_by`, `limit` |
-| `info_platformmetrics_get_defi_overview` | Macro DeFi / spot / perp / stablecoin / bridge aggregates. | `category` (optional enum or label) |
-| `info_platformmetrics_get_stablecoin_info` | Stablecoin ranking or one symbol detail. | `symbol`, `chain`, `limit` |
-| `info_platformmetrics_get_bridge_metrics` | Bridge ranking or breakdown. | `bridge_name`, `chain`, `sort_by`, `limit` |
-| `info_platformmetrics_get_yield_pools` | Lending / yield pools. | `project`, `chain`, `symbol`, `pool_type`, `sort_by`, `limit`, `min_tvl_usd` |
-| `info_platformmetrics_get_platform_history` | TVL / volume / fees history. | `platform_name` (required), `metrics`, `start_date`, `end_date` (YYYY-MM-DD) |
-| `info_platformmetrics_get_exchange_reserves` | Exchange on-chain reserves. | `exchange` (required), `asset`, `period` |
-| `info_platformmetrics_get_liquidation_heatmap` | Liquidation distribution by price band. | `symbol` (required), `exchange`, `range` |
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `info_markettrend_get_kline` | Trend-index OHLCV; optional indicator columns. Fine exchange intervals → `info_marketdetail_get_kline`. | **`symbol`**, **`timeframe`** (required: 1m / 5m / 15m / 1h / 4h / 1d); `period` (1h / 4h / 24h / 7d / …); `size` / `limit` (default 100, max 400); `start_time` / `end_time`; `with_indicators` |
+| `info_markettrend_get_indicator_history` | Historical indicator columns (RSI, MACD, MAs, …). | **`symbol`**, **`indicators`**, **`timeframe`** (required: 15m / 1h / 4h / 1d); `start_time` / `end_time`; `limit` (default 50, max 400) |
+| `info_markettrend_get_technical_analysis` | Multi-timeframe chart labels (e.g. bullish / bearish / neutral style). Not a price forecast. | **`symbol`** (required); `period` (default 3d); `start_time` / `end_time` |
 
 ---
 
-## 7. Macro (`info_macro`)
+## 4. On-chain (4)
 
-Requires OpenSearch macro fetcher + indices; otherwise “requires OpenSearch” style errors.
-
-| Tool | Description | Main parameters |
-|------|-------------|-----------------|
-| `info_macro_get_macro_indicator` | Latest or time series for one indicator. | `mode` (latest / timeseries), `indicator` (required), `country`, time range, `size` (default 20, max 100) |
-| `info_macro_get_economic_calendar` | Economic calendar rows. | `start_date` / `end_date`, `event_type`, `importance`, `size` |
-| `info_macro_get_macro_summary` | Snapshot: key indicators + upcoming calendar items. | (no input) |
-
----
-
-## 8. Market detail — Gate API (`info_marketdetail`)
-
-Direct Gate HTTP API; needs `marketdetail.gateAPI.baseURL`. Timestamps in responses are UTC.
-
-| Tool | Description | Main parameters |
-|------|-------------|-----------------|
-| `info_marketdetail_get_orderbook` | Order book depth. | `symbol`, `market_type` (spot / futures / delivery / options), `depth`, `settle` |
-| `info_marketdetail_get_recent_trades` | Recent trades. | `symbol`, `market_type`, `limit`, `settle` |
-| `info_marketdetail_get_kline` | Fine-grained candles (e.g. 1s / 1m). | `symbol`, `market_type`, `timeframe`, `start_time`, `end_time`, `limit` |
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `info_onchain_get_address_info` | Address profile: balances, labels, risk-style signals. | **`address`** (required); `chain` (eth / trx / bsc / btc / sol / base / arb / …); `scope`; `min_value_usd` |
+| `info_onchain_get_address_transactions` | Paginated transfer / history list. | **`address`** (required); `chain`; `tx_type` (transfer / contract_call / token_transfer / all); `time_range` or `start_time` / `end_time`; `min_value_usd`; `limit` (default 20, max 400); `from_address`; `to_address`; `nonzero_value` |
+| `info_onchain_get_transaction` | One transaction by hash. | **`tx_hash`** (required); `chain` |
+| `info_onchain_get_token_onchain` | Token holders / activity / transfers / smart_money. | **`token`** (required); `chain`; `scope` (holders / activity / transfers / smart_money / full) |
 
 ---
 
-## Reference
+## 5. Compliance (1)
 
-- Cursor visibility / launch list: `/Users/slamdunk/gate/mcptest/docs/mcp-tool.yaml`
-- Tool rules: `specs/mcp-tool-rule.md`
-- API style: `.cursor/rules/mcp-tool-api-style.mdc`
-- APIs & errors: `docs/info/api.md`, `docs/info/api-responses.md`, `docs/error-codes.md`
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `info_compliance_check_token_security` | Heuristic contract risk screen (provider signals). **Not a security guarantee.** | **`chain`** (required); `token` **or** `address` (one required); `scope` (basic / full); `lang` (en / cn / tw / ja / kr) |
+
+---
+
+## 6. Platform metrics (11)
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `info_platformmetrics_get_platform_info` | One protocol / venue profile. | **`platform_name`** (required); `scope`; `include_oi_symbol_detail`; `oi_symbol_limit` |
+| `info_platformmetrics_search_platforms` | Ranked multi-protocol search. | `platform_type`; `chain`; `sort_by`; `sort_order`; `limit` |
+| `info_platformmetrics_get_defi_overview` | Cross-sector DeFi / spot / perp / stablecoin / bridge rollup. | `category` |
+| `info_platformmetrics_get_stablecoin_info` | Stablecoin ranking or detail; optional sections at full scope. | `symbol`; `chain`; `limit`; `scope`; `sections` (issuance_flow / usage_structure / depeg_events); `start_date` / `end_date`; `min_deviation`; `review_status` |
+| `info_platformmetrics_get_bridge_metrics` | Bridge ranking or one-bridge breakdown. | `bridge_name`; `chain`; `sort_by` (volume_24h / volume_7d / deposit_txs_24h); `limit` |
+| `info_platformmetrics_get_yield_pools` | Lending / LP pools by APY or TVL. | `project`; `chain`; `symbol`; `pool_type`; `sort_by` (apy / tvl_usd); `limit`; `min_tvl_usd`; `scope` |
+| `info_platformmetrics_get_platform_history` | Daily TVL / volume / fees (or volume_perps) series. | `platform_name` and/or `exchange_slug`; `metrics`; `granularity`; `start_date` / `end_date` |
+| `info_platformmetrics_get_exchange_reserves` | Exchange reserve snapshots; full scope can add PoR / flows / events. | `exchange`; `asset` (BTC / ETH / USDT / USDC); `scope`; `include_history`; `history_window`; `include_flows`; `include_events`; `start_date` / `end_date`; `event_type`; `limit` |
+| `info_platformmetrics_get_liquidation_heatmap` | Liquidation density by symbol / price band. | **`symbol`** (required); `exchange`; `range` |
+| `info_platformmetrics_get_cex_orderbook_depth` | Cross-venue CEX ±1% depth (spot / perp) for benchmarking. Gate native ladder → `info_marketdetail_get_orderbook`. | **`symbol`** (required); `market_type` (spot / perp); `exchange`; `data_scope`; `limit` (default 20, max 100) |
+| `info_platformmetrics_get_chain_activity` | Chain activity: staking / L2 / BTC L2 groups. | **`metric_group`** (required: staking / l2 / btc_l2); `chain`; `project`; `start_date` / `end_date`; `lookback` (30d / 90d / 1y); `granularity`; `limit` |
+
+---
+
+## 7. Macro (3)
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `info_macro_get_macro_indicator` | Official macro latest value or series (CPI, rates, jobs, …). | **`indicator`** (required); `mode` (latest / timeseries); `country` or `country_code`; `start_time` / `end_time` (or `start_date` / `end_date`); `size` (default 20, max 400) |
+| `info_macro_get_economic_calendar` | Economic calendar in a date window. | `start_date` / `end_date`; `event_type`; `importance`; `size` |
+| `info_macro_get_macro_summary` | Macro dashboard: key snapshots + upcoming releases. | — |
+
+---
+
+## 8. Market detail (3)
+
+Exchange pair / contract books, trades, and candles (e.g. `BTC_USDT`). Times in responses are UTC.
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `info_marketdetail_get_orderbook` | Bids / asks depth ladder. | **`symbol`** (required); `market_type` (spot / futures / delivery / options, default spot); `depth` (default 20, max 100); `settle` (futures/delivery, default usdt) |
+| `info_marketdetail_get_recent_trades` | Recent public trades. | **`symbol`** (required); `market_type`; `limit` (default 50, max 400); `settle` |
+| `info_marketdetail_get_kline` | Exchange OHLCV, including fine intervals (e.g. 1m). | **`symbol`**, **`timeframe`** (required); `market_type`; `start_time` / `end_time`; `limit`; `settle` |

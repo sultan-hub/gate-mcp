@@ -1,64 +1,50 @@
 # Gate News MCP Tools
 
-> **Cursor-visible** News tools only (aligned with `cursor_visible` under `news` in `/Users/slamdunk/gate/mcptest/docs/mcp-tool.yaml`).  
-> Market / on-chain tools: [gate-info-mcp.md](gate-info-mcp.md).
->
-> **Implementation**: `/Users/slamdunk/gate/news-mcp-server`. Naming: `specs/mcp-tool-rule.md`.
+**Endpoint**: `https://api.gatemcp.ai/mcp/news`  
+**Auth**: none  
+**Transport**: Streamable HTTP  
 
-**Runtime**: `news_events_*` need OpenSearch `eventIndex` when running real handlers; if misconfigured, calls may still error or behave as placeholders depending on deploy. Tools such as `news_feed_search_ugc` / `news_feed_search_x` exist in code but are **not** in current Cursor visibility — omitted here.
+Public, read-only news, social, events, and prediction-market research (**18 tools**). No login, account access, or trading. Not investment advice or price forecasts.
 
----
-
-## 1. News feed (`news_feed_*`)
-
-### 1.1 Search & real-time news
-
-| Tool | Description | Main parameters |
-|------|-------------|-----------------|
-| `news_feed_search_news` | Real-time news / feed search. Empty `query` = popularity mode (tickers, `top_total_score=1`); non-empty `query` = similarity mode (no tickers, default `similarity_score=0.6`, `top_total_score=0`). | `query`, `coin` (→ tickers when query empty), `platform` / `platform_type`, `lang` (MCP-side filter only), `start_time`, `end_time`, `sort_by`, `top_total_score`, `limit`, `page`, `similarity_score` |
-
-**Downstream API**: `GET /api/v1/agent/news/social/real_time_news_feed`
-
-### 1.2 Exchange announcements
-
-| Tool | Description | Main parameters |
-|------|-------------|-----------------|
-| `news_feed_get_exchange_announcements` | Listings, delistings, maintenance, etc. Maps `exchange` / `platform` / `query` → downstream `query`; `coin` → `tickers`. | `exchange`, `platform`, `query` (synonyms for exchange filter), `coin`, `announcement_type`, `from`, `to` (Unix seconds), `limit` (max 100 when set) |
-
-**Downstream API**: `GET /api/v1/agent/news/social/new_listing_on_exchange`
-
-### 1.3 Social sentiment (coin-level)
-
-| Tool | Description | Main parameters |
-|------|-------------|-----------------|
-| `news_feed_get_social_sentiment` | Aggregate sentiment for a coin over a window: `overall_sentiment`, `sentiment_label`, `mention_count`, `sentiment_distribution`, `top_tweets`. Parallel calls to sentiment_score / positive_ratio / sentiment_analysis. Default coin **BTC** if omitted. | `coin` (optional; comma-separated supported), `time_range` (`1h` / `24h` default / `7d`) |
-
-**Downstream APIs**: `GET /api/v1/agent/news/social/sentiment_score`, `positive_ratio`, `sentiment_analysis` (paths as in `tools_news_feed.go`).
+Related: [Info](../gate-info/gate-info-mcp.md)
 
 ---
 
-## 2. News events (`news_events_*`)
+## 1. News feed (8)
 
-| Tool | Description | Main parameters |
-|------|-------------|-----------------|
-| `news_events_get_latest_events` | Latest anomaly / event list from OpenSearch when configured; else placeholder. | `event_type`, `coin`, `time_range` (1h / 24h / 7d; mutually exclusive with `start_time`/`end_time`), `limit`, `start_time`, `end_time`, `cursor` |
-| `news_events_get_event_detail` | One event by id when OpenSearch configured; else placeholder. | `event_id` (required) |
-
----
-
-## Response shape
-
-- **List-style feed tools** (`search_news`, `get_exchange_announcements`): echoed inputs, `total`, `count`, `items`, `duration_ms` (see news-mcp-server handlers).
-- **`get_social_sentiment`**: coin-level fields (`overall_sentiment`, `sentiment_label`, `mention_count`, `sentiment_distribution`, `top_tweets`, `duration_ms`) — not the same as the generic list envelope.
-- **Events**: `LatestEventsResponse` / `EventDetailResponse` structs in `internal/event/types.go`.
-
-Shared style reference: `.cursor/rules/mcp-tool-api-style.mdc` (in each repo).
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `news_feed_search_news` | Search platform news / headlines. Empty `query` ≈ heat mode (optional `coin`); non-empty ≈ similarity mode. | `query`; `coin`; `platform` / `platform_type`; `lang` (local filter); `time_range` (1h / 24h / 7d / 30d) or `start_time` / `end_time`; `sort_by`; `top_total_score`; `limit` (default 10, max 100); `page`; `similarity_score` |
+| `news_feed_web_search` | Open-web search with a synthesized answer and cited pages. | `query`; `coin`; `mode` (analysis / brief); `time_range` (1h / 24h / 7d / 30d); `lang` (zh / en / auto); `limit` (default 5, max 10) |
+| `news_feed_search_x` | X/Twitter topic search with tweet-level evidence and citations. | `query`; `time_range` (1h / 24h / 7d) or `days`; `allowed_handles` / `excluded_handles` (max 10 each, exclusive); `model`; `enable_image_understanding` / `enable_video_understanding`; `coin`; `platform` / `platform_type`; `lang`; time filters; `sort_by`; `top_total_score`; `limit`; `page`; `similarity_score` |
+| `news_feed_search_ugc` | Multi-platform UGC (Reddit / Discord / Telegram / YouTube style). `query` and/or `coin` required (both empty invalid). | `query`; `coin`; `platform` (reddit / discord / telegram / youtube / all); `domain` (crypto / defi / finance / macro / ai_agent / web3_dev / all); `channel`; `quality_tier` (A / B / all); `time_range` (1h / 24h / 7d / 30d / all); `sort_by` (relevance / upvotes / recent); `limit` (default 10, max 50) |
+| `news_feed_get_exchange_announcements` | Official exchange notices (listings, delistings, maintenance). Media headlines → `news_feed_search_news`. | `exchange` / `platform`; `query`; `coin`; `announcement_type` (listing / delisting / maintenance / all); `from` / `to` (Unix s); `limit` (max 100 when set) |
+| `news_feed_get_social_sentiment` | Per-coin aggregate sentiment (score, split, mentions, sample posts). Default window 24h; coin optional (defaults apply server-side, often BTC). | `coin`; `time_range` (1h / 24h / 7d) |
+| `news_feed_get_mention_burst` | 24h multi-platform mention burst / growth / direction. | `coin` (required in practice); `window` (24h); `platforms` (all / gate_square / binance_square / twitter / telegram / youtube / reddit / discord) |
+| `news_feed_get_hot_topics` | Top 2–4 social themes for a coin (latest 4h window). | `coin` (required in practice); `window` (4h); `limit` (2–4, default 4); `platforms` |
 
 ---
 
-## Reference
+## 2. Events & market moves (5)
 
-- Cursor visibility / launch list: `/Users/slamdunk/gate/mcptest/docs/mcp-tool.yaml`
-- `specs/mcp-tool-rule.md`
-- `internal/mcphost/tools_news_feed.go`, `tools_event.go`, `tools_placeholder.go`
-- `docs/tool-api-mapping.md`, `docs/request.md`
+Research only — not trade execution or guaranteed attribution.
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `news_events_get_latest_events` | Filtered event list / timeline (`event_id`, impact direction fields). | `event_type`; `coin`; `time_range` (1h / 24h / 7d; exclusive with absolute times); `direction` (positive / negative / neutral / mixed / unknown / all); `limit` (default 20, max 100); `start_time` / `end_time`; `cursor` |
+| `news_events_get_event_detail` | Full detail for one digest `event_id`. | **`event_id`** (required) |
+| `news_events_explain_market_move` | Explain drivers of a recent coin price move in a window. | `query`; `coin`; `time_range` (30m / 1h / 2h / 4h / 24h, default 2h); `mode` (auto / price_move / event_impact); `lang` (zh / en) |
+| `news_events_get_market_move_report` | Fetch a stored market-move report. Lookup order: `report_id` > `event_id` > latest for `symbol`. | `symbol`; `report_id`; `event_id` |
+| `news_events_list_market_move_reports` | List stored reports for a symbol by `updated_at` window. | `symbol`; `start_time`; `end_time`; `limit` (default 20, max 100) |
+
+---
+
+## 3. Prediction markets (5)
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `news_prediction_get_volume_delta_ranking` | Daily ranking by volume change (UTC date). | `date_utc` (YYYY-MM-DD); `limit` (default 20, max 100); `venue` (polymarket / predict_fun); `category`; `status` (active / closed / resolved / all, default active) |
+| `news_prediction_get_fastest_rising_ranking` | Daily ranking by probability rise. | same as volume-delta ranking |
+| `news_prediction_get_market_orderbook` | Live current order book (`mode=current` only). | `venue` (polymarket / predict_fun); `market_id`; `depth` (1–20, default 20); `mode` (current) |
+| `news_prediction_search_events` | Search prediction events. | `query`; `coin` (not alone without query/category); `category`; `status` (default active); `venue`; `sort_by` (attention / volume / liquidity / recently_listed / probability_change / volume_delta_today); `limit` (default 20, max 100); `page_token`; `with_markets` |
+| `news_prediction_get_event_signal` | One event signal by `event_ref` (`venue:venue_event_id`). Outcomes, volume flow; optional markets. | `event_ref`; `window` (1h / 24h / 7d, default 24h); `venue`; `include_markets` (default true) |

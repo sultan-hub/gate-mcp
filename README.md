@@ -18,33 +18,36 @@ A Gate MCP (Model Context Protocol) server that enables AI agents to interact wi
 - 🎯 **Activity & Welfare** - Activity center, coupons, launch pool, square, welfare
 - 🌍 **TradFi, CrossEx, P2P** - Traditional finance, cross-exchange, P2P trading
 - 🌐 **DEX** - On-chain wallet, swap (single-chain & cross-chain), token info, market data across 20+ chains
-- 📰 **Info** - Coin info, market snapshots, technical analysis, on-chain data, compliance checks
-- 📢 **News** - Real-time crypto news, exchange announcements, social sentiment
+- 📰 **Info** - Coin discovery, market snapshots, technical/platform metrics, on-chain and macro data
+- 📢 **News** - Crypto news, social insights, market events, prediction markets
+- 📚 **Docs** - Research reports, papers, and documentation search
 - 🔐 **OAuth2** - Secure authorization for trading and private tools
 
 ## MCP Endpoints
 
-The service exposes five MCP endpoints:
+The service exposes the following MCP endpoints:
 
 | Endpoint | Auth | Tools |
 |----------|------|-------|
 | `https://api.gatemcp.ai/mcp` | None | Public market data (58 tools: spot, futures, margin, options, delivery, earn, alpha, activity, launch pool, square, flash swap) |
 | `https://api.gatemcp.ai/mcp/exchange` | OAuth2 | CEX trading & account (400+ tools: spot/futures/options/delivery/margin trading, wallet, unified account, sub-accounts, earn, flash swap, rebate, TradFi, CrossEx, P2P, Alpha, activity center, coupon, launch pool, square, welfare) |
 | `https://api.gatemcp.ai/mcp/dex` | Google / Gate OAuth | DEX wallet & swap (33 tools: auth, wallet, chain config, transfer, swap, market data, token info, agentic, RPC across 20+ chains) |
-| `https://api.gatemcp.ai/mcp/info` | None | Coin info & analysis (10 tools: market snapshots, technical analysis, on-chain data, compliance) |
-| `https://api.gatemcp.ai/mcp/news` | None | News & sentiment (3 tools: news search, exchange announcements, social sentiment) |
+| `https://api.gatemcp.ai/mcp/info` | None | Coin info & analysis (32 tools: coins, snapshots, trends, on-chain, platform metrics, macro, market detail) |
+| `https://api.gatemcp.ai/mcp/news` | None | News & research (18 tools: news/UGC/X/web, announcements, sentiment, events, prediction markets) |
+| `https://api.gatemcp.ai/mcp/docs` | None | Docs research (3 tools: research search, coin research, papers) |
 
 - **Market data only** → Use `/mcp` (no Gate account needed)
 - **CEX trading, balances, transfers** → Use `/mcp/exchange` (Gate OAuth2 required)
 - **DEX wallet, swap, on-chain** → Use `/mcp/dex` (Google / Gate OAuth required)
 - **Coin info, technical analysis** → Use `/mcp/info` (no auth)
 - **News, announcements** → Use `/mcp/news` (no auth)
+- **Research docs & papers** → Use `/mcp/docs` (no auth)
 
 Transport: Streamable HTTP (with SSE fallback).
 
 ## Authorization (OAuth2)
 
-**`/mcp/exchange` requires Gate OAuth2; `/mcp/dex` requires Google or Gate OAuth.** The endpoints `/mcp`, `/mcp/info`, and `/mcp/news` do not require any authentication.
+**`/mcp/exchange` requires Gate OAuth2; `/mcp/dex` requires Google or Gate OAuth.** The endpoints `/mcp`, `/mcp/info`, `/mcp/news`, and `/mcp/docs` do not require any authentication.
 
 ### Using mcporter
 
@@ -508,47 +511,30 @@ For full tool parameters, see [Gate API Docs](https://www.gate.com/docs/develope
 
 For full DEX tool parameters, see [gate-dex-mcp](gate-dex/gate-dex-mcp.md). For the Agentic Wallet subset (auth, wallet, market data, resources), see [gate-agentic-wallet-mcp](gate-dex/gate-agentic-wallet-mcp.md).
 
-### Info — Coin & Market
+### Info (`/mcp/info` — 32 tools, no auth)
 
-| Tool | Description |
-|------|-------------|
-| `info_coin_get_coin_info` | Get coin info by name, symbol, or contract address |
-| `info_marketsnapshot_get_market_snapshot` | Market overview: price, K-line summary, market cap, FDV, fear & greed |
+Public, read-only market research. Categories (full parameter tables: [gate-info-mcp](gate-info/gate-info-mcp.md)):
 
-### Info — Market Trend & Technical Analysis
+| Category | Tools |
+|----------|--------|
+| Coin | `info_coin_get_coin_info`, `info_coin_search_coins`, `info_coin_get_coin_rankings` |
+| Market snapshot | `info_marketsnapshot_get_market_snapshot`, `info_marketsnapshot_batch_market_snapshot`, `info_marketsnapshot_get_market_overview`, `info_marketsnapshot_get_institutional_metrics` |
+| Market trend | `info_markettrend_get_kline`, `info_markettrend_get_indicator_history`, `info_markettrend_get_technical_analysis` |
+| On-chain | `info_onchain_get_address_info`, `info_onchain_get_address_transactions`, `info_onchain_get_transaction`, `info_onchain_get_token_onchain` |
+| Compliance | `info_compliance_check_token_security` |
+| Platform metrics | `info_platformmetrics_get_platform_info`, `info_platformmetrics_search_platforms`, `info_platformmetrics_get_defi_overview`, `info_platformmetrics_get_stablecoin_info`, `info_platformmetrics_get_bridge_metrics`, `info_platformmetrics_get_yield_pools`, `info_platformmetrics_get_platform_history`, `info_platformmetrics_get_exchange_reserves`, `info_platformmetrics_get_liquidation_heatmap`, `info_platformmetrics_get_cex_orderbook_depth`, `info_platformmetrics_get_chain_activity` |
+| Macro | `info_macro_get_macro_indicator`, `info_macro_get_economic_calendar`, `info_macro_get_macro_summary` |
+| Market detail | `info_marketdetail_get_orderbook`, `info_marketdetail_get_recent_trades`, `info_marketdetail_get_kline` |
 
-| Tool | Description |
-|------|-------------|
-| `info_markettrend_get_kline` | OHLCV K-line data with optional indicators |
-| `info_markettrend_get_indicator_history` | Historical indicator series (RSI, MACD, MA, EMA) |
-| `info_markettrend_get_technical_analysis` | Multi-timeframe technical signals |
+### News (`/mcp/news` — 18 tools, no auth)
 
-### Info — On-chain Data
+Public, read-only news and social research. Categories (full parameter tables: [gate-news-mcp](gate-news/gate-news-mcp.md)):
 
-| Tool | Description |
-|------|-------------|
-| `info_onchain_get_address_info` | On-chain address: labels, risk level, token balances |
-| `info_onchain_get_address_transactions` | Address transaction history |
-| `info_onchain_get_transaction` | Full transaction details by tx hash |
-| `info_onchain_get_token_onchain` | Token on-chain data: holders, activity, smart money |
-
-### Info — Compliance
-
-| Tool | Description |
-|------|-------------|
-| `info_compliance_check_token_security` | Token security check: risk tier, taxes, open source, holders |
-
-For full Info tool parameters, see [gate-info-mcp](gate-info/gate-info-mcp.md).
-
-### News — Search & Announcements
-
-| Tool | Description |
-|------|-------------|
-| `news_feed_search_news` | Search news by keyword, coin, time range, platform type |
-| `news_feed_get_exchange_announcements` | Exchange announcements: listings, delistings, maintenance |
-| `news_feed_get_social_sentiment` | Post detail: author, content, interactions, sentiment |
-
-For full News tool parameters, see [gate-news-mcp](gate-news/gate-news-mcp.md).
+| Category | Tools |
+|----------|--------|
+| News feed | `news_feed_search_news`, `news_feed_web_search`, `news_feed_search_x`, `news_feed_search_ugc`, `news_feed_get_exchange_announcements`, `news_feed_get_social_sentiment`, `news_feed_get_mention_burst`, `news_feed_get_hot_topics` |
+| Events | `news_events_get_latest_events`, `news_events_get_event_detail`, `news_events_explain_market_move`, `news_events_get_market_move_report`, `news_events_list_market_move_reports` |
+| Prediction | `news_prediction_get_volume_delta_ranking`, `news_prediction_get_fastest_rising_ranking`, `news_prediction_get_market_orderbook`, `news_prediction_search_events`, `news_prediction_get_event_signal` |
 
 ### MCP Resources
 
@@ -568,7 +554,7 @@ The `/mcp` and `/mcp/exchange` endpoints also expose MCP Resources for static re
 
 ### Q: Do I need a Gate account?
 
-A: **Only for CEX trading and DEX wallet.** `/mcp`, `/mcp/info`, and `/mcp/news` are fully public — no account needed. `/mcp/exchange` (CEX trading, balances, transfers) requires Gate OAuth2. `/mcp/dex` (on-chain wallet, swap) requires Google or Gate OAuth.
+A: **Only for CEX trading and DEX wallet.** `/mcp`, `/mcp/info`, `/mcp/news`, and `/mcp/docs` are fully public — no account needed. `/mcp/exchange` (CEX trading, balances, transfers) requires Gate OAuth2. `/mcp/dex` (on-chain wallet, swap) requires Google or Gate OAuth.
 
 ### Q: Does it support trading?
 
