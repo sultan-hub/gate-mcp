@@ -31,6 +31,7 @@
 | `https://api.gatemcp.ai/mcp/exchange` | OAuth2 | CEX 交易与账户（400+ 工具：现货/合约/期权/交割/杠杆交易、钱包、统一账户、子账户、理财、闪兑、返佣、TradFi、跨所、P2P、Alpha、活动中心、卡券、新币挖矿、广场、新手福利） |
 | `https://api.gatemcp.ai/mcp/dex` | Google / Gate OAuth | DEX 钱包与兑换（33 个工具：链上钱包、Swap、代币信息、市场数据、Agentic、RPC，支持 20+ 条链） |
 | `https://api.gatemcp.ai/mcp/info` | 无 | 币种信息与分析（32 个工具：币种、快照、趋势、链上、平台指标、宏观、盘口细节） |
+| `https://api.gatemcp.ai/mcp/open/info` | 无 | Gate Info 送审面（恰好 7 个工具：币种资料、市场概览/快照、K 线、盘口、近期成交） |
 | `https://api.gatemcp.ai/mcp/news` | 无 | 资讯与研究（18 个工具：新闻/UGC/X/网页、公告、情绪、事件、预测市场） |
 | `https://api.gatemcp.ai/mcp/docs` | 无 | 文档研究（3 个工具：研究检索、币种研报、论文） |
 
@@ -38,6 +39,7 @@
 - **CEX 交易、余额、划转** → 使用 `/mcp/exchange`（需 Gate OAuth2）
 - **DEX 钱包、兑换、链上操作** → 使用 `/mcp/dex`（需 Google / Gate OAuth）
 - **币种信息、技术分析** → 使用 `/mcp/info`（无需认证）
+- **ChatGPT / OpenAI Apps Gate Info 上架** → 使用 `/mcp/open/info`（7 工具 allowlist；无需认证）
 - **资讯、公告** → 使用 `/mcp/news`（无需认证）
 - **研报与论文** → 使用 `/mcp/docs`（无需认证）
 
@@ -45,7 +47,7 @@
 
 ## 授权说明（OAuth2）
 
-**`/mcp/exchange` 需要 Gate OAuth2；`/mcp/dex` 需要 Google 或 Gate OAuth。** `/mcp`、`/mcp/info`、`/mcp/news`、`/mcp/docs` 无需任何认证。
+**`/mcp/exchange` 需要 Gate OAuth2；`/mcp/dex` 需要 Google 或 Gate OAuth。** `/mcp`、`/mcp/info`、`/mcp/open/info`、`/mcp/news`、`/mcp/docs` 无需任何认证。
 
 ### mcporter
 
@@ -532,6 +534,16 @@ Claude Desktop 需要使用本地 stdio 代理。
 | 宏观 | `info_macro_get_macro_indicator`、`info_macro_get_economic_calendar`、`info_macro_get_macro_summary` |
 | 盘口细节 | `info_marketdetail_get_orderbook`、`info_marketdetail_get_recent_trades`、`info_marketdetail_get_kline` |
 
+### Open Info（`/mcp/open/info` — 7 个工具，无需认证）
+
+ChatGPT / OpenAI Apps 送审 allowlist。完整参数表见 [gate-open-info-mcp](gate-open-info/gate-open-info-mcp_zh.md)。
+
+| 分类 | 工具 |
+|------|------|
+| 币种 | `info_coin_get_coin_info` |
+| 行情快照 | `info_marketsnapshot_get_market_overview`、`info_marketsnapshot_get_market_snapshot`、`info_marketsnapshot_batch_market_snapshot` |
+| 盘口细节 | `info_marketdetail_get_kline`、`info_marketdetail_get_orderbook`、`info_marketdetail_get_recent_trades` |
+
 ### News（`/mcp/news` — 18 个工具，无需认证）
 
 公开、只读的资讯与社交研究。分类总览（完整参数表见 [gate-news-mcp](gate-news/gate-news-mcp_zh.md)）：
@@ -548,7 +560,7 @@ Claude Desktop 需要使用本地 stdio 代理。
 
 ### Q: 需要 Gate 账号吗？
 
-A: **仅在使用 CEX 交易和 DEX 钱包时需要**。`/mcp`、`/mcp/info`、`/mcp/news`、`/mcp/docs` 完全公开，无需账号。`/mcp/exchange`（CEX 交易、余额、划转）须通过 Gate OAuth2 登录。`/mcp/dex`（链上钱包、兑换）须通过 Google 或 Gate OAuth 登录。
+A: **仅在使用 CEX 交易和 DEX 钱包时需要**。`/mcp`、`/mcp/info`、`/mcp/open/info`、`/mcp/news`、`/mcp/docs` 完全公开，无需账号。`/mcp/exchange`（CEX 交易、余额、划转）须通过 Gate OAuth2 登录。`/mcp/dex`（链上钱包、兑换）须通过 Google 或 Gate OAuth 登录。
 
 ### Q: 支持交易吗？
 

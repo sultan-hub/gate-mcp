@@ -1,0 +1,18 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.gateio-dev/gate-open-info",
+  "title": "Gate Info",
+  "description": "Public, read-only crypto market research for ChatGPT: coin profiles, market overview, single and batch spot snapshots, Gate candlesticks, order book depth, and recent trades (7 tools). No login, balances, order placement, or transfers. Not investment advice.",
+  "version": "0.1.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://api.gatemcp.ai/mcp/open/info"
+    }
+  ],
+  "repository": {
+    "source": "github",
+    "url": "https://github.com/gate/gate-mcp",
+    "id": "1147714938"
+  }
+}

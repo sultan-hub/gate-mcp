@@ -33,6 +33,7 @@ The service exposes the following MCP endpoints:
 | `https://api.gatemcp.ai/mcp/exchange` | OAuth2 | CEX trading & account (400+ tools: spot/futures/options/delivery/margin trading, wallet, unified account, sub-accounts, earn, flash swap, rebate, TradFi, CrossEx, P2P, Alpha, activity center, coupon, launch pool, square, welfare) |
 | `https://api.gatemcp.ai/mcp/dex` | Google / Gate OAuth | DEX wallet & swap (33 tools: auth, wallet, chain config, transfer, swap, market data, token info, agentic, RPC across 20+ chains) |
 | `https://api.gatemcp.ai/mcp/info` | None | Coin info & analysis (32 tools: coins, snapshots, trends, on-chain, platform metrics, macro, market detail) |
+| `https://api.gatemcp.ai/mcp/open/info` | None | Gate Info submission surface (exactly 7 tools: coin profile, market overview/snapshots, kline, order book, recent trades) |
 | `https://api.gatemcp.ai/mcp/news` | None | News & research (18 tools: news/UGC/X/web, announcements, sentiment, events, prediction markets) |
 | `https://api.gatemcp.ai/mcp/docs` | None | Docs research (3 tools: research search, coin research, papers) |
 
@@ -40,6 +41,7 @@ The service exposes the following MCP endpoints:
 - **CEX trading, balances, transfers** → Use `/mcp/exchange` (Gate OAuth2 required)
 - **DEX wallet, swap, on-chain** → Use `/mcp/dex` (Google / Gate OAuth required)
 - **Coin info, technical analysis** → Use `/mcp/info` (no auth)
+- **ChatGPT / OpenAI Apps Gate Info listing** → Use `/mcp/open/info` (7-tool allowlist; no auth)
 - **News, announcements** → Use `/mcp/news` (no auth)
 - **Research docs & papers** → Use `/mcp/docs` (no auth)
 
@@ -47,7 +49,7 @@ Transport: Streamable HTTP (with SSE fallback).
 
 ## Authorization (OAuth2)
 
-**`/mcp/exchange` requires Gate OAuth2; `/mcp/dex` requires Google or Gate OAuth.** The endpoints `/mcp`, `/mcp/info`, `/mcp/news`, and `/mcp/docs` do not require any authentication.
+**`/mcp/exchange` requires Gate OAuth2; `/mcp/dex` requires Google or Gate OAuth.** The endpoints `/mcp`, `/mcp/info`, `/mcp/open/info`, `/mcp/news`, and `/mcp/docs` do not require any authentication.
 
 ### Using mcporter
 
@@ -526,6 +528,16 @@ Public, read-only market research. Categories (full parameter tables: [gate-info
 | Macro | `info_macro_get_macro_indicator`, `info_macro_get_economic_calendar`, `info_macro_get_macro_summary` |
 | Market detail | `info_marketdetail_get_orderbook`, `info_marketdetail_get_recent_trades`, `info_marketdetail_get_kline` |
 
+### Open Info (`/mcp/open/info` — 7 tools, no auth)
+
+ChatGPT / OpenAI Apps submission allowlist only. Full parameter tables: [gate-open-info-mcp](gate-open-info/gate-open-info-mcp.md).
+
+| Category | Tools |
+|----------|--------|
+| Coin | `info_coin_get_coin_info` |
+| Market snapshot | `info_marketsnapshot_get_market_overview`, `info_marketsnapshot_get_market_snapshot`, `info_marketsnapshot_batch_market_snapshot` |
+| Market detail | `info_marketdetail_get_kline`, `info_marketdetail_get_orderbook`, `info_marketdetail_get_recent_trades` |
+
 ### News (`/mcp/news` — 18 tools, no auth)
 
 Public, read-only news and social research. Categories (full parameter tables: [gate-news-mcp](gate-news/gate-news-mcp.md)):
@@ -554,7 +566,7 @@ The `/mcp` and `/mcp/exchange` endpoints also expose MCP Resources for static re
 
 ### Q: Do I need a Gate account?
 
-A: **Only for CEX trading and DEX wallet.** `/mcp`, `/mcp/info`, `/mcp/news`, and `/mcp/docs` are fully public — no account needed. `/mcp/exchange` (CEX trading, balances, transfers) requires Gate OAuth2. `/mcp/dex` (on-chain wallet, swap) requires Google or Gate OAuth.
+A: **Only for CEX trading and DEX wallet.** `/mcp`, `/mcp/info`, `/mcp/open/info`, `/mcp/news`, and `/mcp/docs` are fully public — no account needed. `/mcp/exchange` (CEX trading, balances, transfers) requires Gate OAuth2. `/mcp/dex` (on-chain wallet, swap) requires Google or Gate OAuth.
 
 ### Q: Does it support trading?
 
